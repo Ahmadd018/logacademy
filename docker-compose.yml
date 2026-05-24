@@ -8,6 +8,7 @@ services:
     volumes:
       - ./web/html:/var/www/html
       - ./web/apache:/etc/apache2/sites-enabled
+      - ./logs/apache:/var/log/apache2
     env_file:
       - .env
     command: >

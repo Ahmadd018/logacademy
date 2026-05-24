@@ -3,3 +3,6 @@
 
 # Keep backup/.env — it is intentional vuln content (part of Chain 1)
 !web/html/logacademy/backup/.env
+
+# Log files — generated at runtime, not committed
+logs/apache/*.log
