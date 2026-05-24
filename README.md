@@ -80,12 +80,14 @@ Fill in the values:
 On **every machine** that will access the lab (browser, attacker box, etc.):
 
 ```bash
-echo "YOUR_WEB_SERVER_IP  logacademy.local logportal.local" | sudo tee -a /etc/hosts
+WEB_SERVER_IP=<web_server_ip>
+echo "$WEB_SERVER_IP  logacademy.local logportal.local" | sudo tee -a /etc/hosts
 ```
 
-Replace `YOUR_WEB_SERVER_IP` with the actual IP of the web server VM.
+Replace `<web_server_ip>` with the actual IP of the web server VM, then run both lines.
 
-> On **Windows**: edit `C:\Windows\System32\drivers\etc\hosts` as Administrator.
+> On **Windows**: edit `C:\Windows\System32\drivers\etc\hosts` as Administrator and add:
+> `<web_server_ip>  logacademy.local logportal.local`
 
 ### 4. Start the lab
 
