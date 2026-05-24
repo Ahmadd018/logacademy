@@ -10,6 +10,10 @@ services:
       - ./web/apache:/etc/apache2/sites-enabled
     env_file:
       - .env
+    command: >
+      bash -c "chown -R www-data:www-data /var/www/html/logacademy/uploads &&
+               chmod -R 777 /var/www/html/logacademy/uploads &&
+               apache2-foreground"
     depends_on:
       db:
         condition: service_healthy

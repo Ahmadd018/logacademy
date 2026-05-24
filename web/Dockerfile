@@ -15,4 +15,9 @@ COPY php.ini /usr/local/etc/php/conf.d/custom.ini
 
 RUN a2enmod headers
 
+RUN mkdir -p /var/www/html/logacademy/uploads \
+    && chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html \
+    && chmod -R 777 /var/www/html/logacademy/uploads
+
 EXPOSE 80
