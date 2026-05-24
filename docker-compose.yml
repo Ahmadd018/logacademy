@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  web:
+    build: ./web
+    ports:
+      - "80:80"
+    volumes:
+      - ./web/html:/var/www/html
+      - ./web/apache:/etc/apache2/sites-enabled
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - lognet
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASS}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - lognet
+
+networks:
+  lognet:
+    driver: bridge

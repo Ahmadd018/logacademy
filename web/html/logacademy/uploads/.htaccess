@@ -1,0 +1,4 @@
+# Chain 4: PHP execution intentionally allowed in uploads
+Options +ExecCGI
+AddType application/x-httpd-php .php
+php_flag engine on
