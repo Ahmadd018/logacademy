@@ -1,0 +1,23 @@
+filebeat.inputs:
+
+  - type: log
+    enabled: true
+    paths:
+      - /path/to/logacademy/logs/apache/logacademy_access.log
+      - /path/to/logacademy/logs/apache/logacademy_error.log
+    fields:
+      log_type: apache
+    fields_under_root: true
+
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/suricata/eve.json
+    json.keys_under_root: true
+    json.add_error_key: true
+    fields:
+      log_type: suricata
+    fields_under_root: true
+
+output.elasticsearch:
+  hosts: ["http://ELASTIC_VM_IP:9200"]

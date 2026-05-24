@@ -220,21 +220,82 @@ docker-compose down -v       # stop and wipe DB (fresh start)
 
 ---
 
-## Blue Team — Log Collection (Wazuh)
+## Blue Team — Log Collection (Elastic SIEM)
 
-> Full Wazuh integration guide coming soon. The following is the intended setup.
+Two log sources feed into Elasticsearch:
 
-1. Install the **Wazuh agent** on the web server VM and point it at your Wazuh manager IP
-2. Configure the agent to ship Apache access/error logs:
-   - `/var/log/apache2/logacademy_access.log`
-   - `/var/log/apache2/logacademy_error.log`
-3. Write custom Wazuh rules to detect each chain:
-   - Chain 1: SQL keywords (`UNION`, `information_schema`) in GET/POST params
-   - Chain 2: `<script>` tags in POST body to `/messages.php`
-   - Chain 3: Repeated token variations to `/profile/view.php`
-   - Chain 4: `.php` file uploads to `/documents/upload.php`
-   - Chain 5: `redirect.php` requests with external `url=` values
-   - Chain 6: Rapid repeated POST requests to `/verify.php`
+| Source | What it captures |
+|---|---|
+| Apache logs | Every HTTP request — URL, method, status code, IP |
+| Suricata | Network-level traffic — reverse shell connections, port scans |
+
+### Architecture
+
+```
+VM 1 (App server)                      VM 2 (Elastic)
+├── Docker app                         ├── Elasticsearch :9200
+│   └── logs/apache/  ──┐              └── Kibana :5601
+├── Suricata          ──┼── Filebeat ────────────────────►
+│   /var/log/suricata/  ┘
+```
+
+### 1. Apache logs
+
+Already mounted to `./logs/apache/` on the host — no extra steps needed.
+
+### 2. Install Suricata (on the app server VM)
+
+```bash
+sudo apt install -y suricata
+sudo suricata-update
+```
+
+Find your Docker network interface (usually `docker0`):
+
+```bash
+ip link show
+```
+
+Edit `/etc/suricata/suricata.yaml` and set:
+
+```yaml
+af-packet:
+  - interface: docker0
+```
+
+Start Suricata:
+
+```bash
+sudo systemctl enable --now suricata
+```
+
+Logs will appear at `/var/log/suricata/eve.json`.
+
+### 3. Install and configure Filebeat (on the app server VM)
+
+```bash
+sudo apt install -y filebeat
+```
+
+Copy the provided config and update the two placeholder values:
+
+```bash
+sudo cp setup/filebeat.yml /etc/filebeat/filebeat.yml
+sudo nano /etc/filebeat/filebeat.yml
+```
+
+- Replace `/path/to/logacademy` with the actual path where you cloned the repo
+- Replace `ELASTIC_VM_IP` with your Elastic VM's IP address
+
+Start Filebeat:
+
+```bash
+sudo systemctl enable --now filebeat
+```
+
+### 4. Verify logs are arriving
+
+In Kibana → **Discover**, you should see events with `log_type: apache` and `log_type: suricata`.
 
 ---
 
@@ -244,6 +305,10 @@ docker-compose down -v       # stop and wipe DB (fresh start)
 logacademy/
 ├── docker-compose.yml
 ├── .env.example              ← copy to .env and fill in
+├── logs/
+│   └── apache/               ← Apache logs land here at runtime
+├── setup/
+│   └── filebeat.yml          ← ready-made Filebeat config
 ├── db/
 │   └── init.sql              ← schema + seed data
 └── web/
